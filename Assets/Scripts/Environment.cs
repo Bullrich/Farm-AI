@@ -15,6 +15,7 @@ public class Environment : MonoBehaviour {
 	public DayNightCycle startingCycle;
 	public GameObject lightDay, lightAfternoon, lightNight;
 	public Transform farm;
+    public MovingAgent[] agents;
 
 	public float cycleSeconds = 30f;
 
@@ -30,9 +31,12 @@ public class Environment : MonoBehaviour {
 			if(candy)
 				_allCandy.Add(candy);
 		}
-	}
 
-	DayNightCycle currentCycle {
+        foreach (MovingAgent agent in agents)
+            agent.ChangeCycle(_currentCycle);
+    }
+
+	public DayNightCycle currentCycle {
 		get { return _currentCycle; }
 		set { 
 			if(_currentCycle != value) {
@@ -40,14 +44,26 @@ public class Environment : MonoBehaviour {
 				lightDay.SetActive(_currentCycle == DayNightCycle.Day);
 				lightAfternoon.SetActive(_currentCycle == DayNightCycle.Afternoon);
 				lightNight.SetActive(_currentCycle == DayNightCycle.Night);
+                foreach (MovingAgent agent in agents)
+                    agent.ChangeCycle(_currentCycle);
 			}
 		}
 	}
 
-
+    float timer = 0f;
 	
 	// Update is called once per frame
 	void Update () {
-	
-	}
+        timer += Time.deltaTime;
+        int enumLength = (int)DayNightCycle.Night;
+
+        if(timer > cycleSeconds) {
+            timer = 0;
+            int currentCycleNumber = (int)currentCycle;
+            currentCycle = (DayNightCycle)(currentCycleNumber + 1 > enumLength ? 0 : ++currentCycleNumber);
+            if(currentCycle==DayNightCycle.Day)
+                foreach (Candy candy in _allCandy)
+                    candy.Grow();
+        }
+    }
 }

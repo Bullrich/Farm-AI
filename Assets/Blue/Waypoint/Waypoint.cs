@@ -9,6 +9,7 @@ namespace Blue.Waypoints
 	public class Waypoint : MonoBehaviour {
         public Waypoint next;
         public float nearDistance = 0.1f;
+        public bool hasWaypoint;
 
         public Waypoint Next { get { return next; } }
         public float NearDistance { get { return nearDistance; } }
@@ -27,6 +28,12 @@ namespace Blue.Waypoints
             Gizmos.color = Color.magenta;
             if (next != null)
                 Gizmos.DrawLine(transform.position, next.transform.position);
+        }
+
+        private void OnDrawGizmosSelected() {
+            Gizmos.color = Color.cyan;
+            if(Next!=null)
+            Gizmos.DrawWireSphere(Next.transform.position, .3f);
         }
     }
 }

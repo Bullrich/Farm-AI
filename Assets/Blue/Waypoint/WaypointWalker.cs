@@ -10,14 +10,14 @@ namespace Blue.Waypoints {
         Quaternion currentRotation, nextRotation;
         Transform _tran;
 
-        public void Init(Transform tran, float moveSpeed, Waypoint firstWaypoint) {
+        public void Reset(Transform tran, float moveSpeed, Waypoint firstWaypoint) {
             _tran = tran;
             selected = firstWaypoint;
             speed = moveSpeed;
-            bezier.UpdateBezierParams(selected, _tran.position, speed);
+            bezier.UpdateBezierParams(firstWaypoint, _tran.position, speed);
         }
 
-        public void MoveToDirection(bool useSmooth) {
+        public Vector3 MoveToDirection(bool useSmooth) {
             Vector3 myPos = _tran.position;
             Vector3 waypointPos;
             if (useSmooth)
@@ -28,18 +28,25 @@ namespace Blue.Waypoints {
             else
                 waypointPos = targetPosition(selected);
 
-            _tran.forward = waypointPos;
-            _tran.position = _tran.position + (waypointPos * Time.deltaTime) * speed;
+            //_tran.forward = waypointPos;
+            //_tran.position = _tran.position + (waypointPos * Time.deltaTime) * speed;
+            //  controller.Move((waypointPos * Time.deltaTime) * speed);
 
             if (useSmooth && bezier._bezierT >= 1.0f && selected.Next != null) {
                 SelectNextWaypoint();
                 bezier.UpdateBezierParams(selected, lastWaypoint.transform.position, speed);
             }
+
+            return waypointPos;
         }
 
-        private void SelectNextWaypoint() {
+        private bool SelectNextWaypoint() {
             lastWaypoint = selected;
-            selected = selected.Next;
+            if (selected.Next != null) {
+                selected = selected.Next;
+                return true;
+            }
+            return false;
         }
 
         public bool closeToWaypoint() {

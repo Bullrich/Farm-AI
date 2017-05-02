@@ -1,20 +1,44 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Blue.Waypoints;
+using Blue.Fov;
+using System;
 
 public class Farmer : MovingAgent {
 	public Waypoint wpHome;
+    FieldOfView fov;
+    public WaypointManager farm, ocio;
+
+    enum mState {
+        moving, paused, rotating
+    }
+    mState currentState = mState.moving;
 
 
 	// Use this for initialization
 	protected override void Start () {
 		base.Start();
+        fov = GetComponent<FieldOfView>();
+        fov.ContinueFOV();
 		WalkTo(wpHome);
 	}
-	
-	// Update is called once per frame
-	protected override void Update () {
+
+    Vector3 FovPos(Vector3 targetPos) {
+        Vector3 toWayPoint = targetPos - transform.position;
+        Vector3 direction = toWayPoint.normalized;
+        Vector3 movementDelta = direction;
+        return movementDelta.sqrMagnitude > toWayPoint.sqrMagnitude ? toWayPoint : movementDelta;
+    }
+
+    // Update is called once per frame
+    protected override void Update () {
 		base.Update();
-	}
+        if (!fov.hasTargetInView())
+            //Move(walker.MoveToDirection(shouldSmooth));
+            STM(currentState,ref _time);
+        else
+            Move(FovPos(fov.getTarget().position));
+    }
 
 	protected override void WalkTo(Waypoint destination) {
 		GetComponent<Animator>().SetFloat("Walk", speed);
@@ -29,8 +53,47 @@ public class Farmer : MovingAgent {
 	void OnControllerColliderHit(ControllerColliderHit hit) {
 		var candy = hit.collider.GetComponent<Candy>();
 		if(candy != null) {
+            candy.Eat();
 
-
-		}
+		} else if (hit.collider.GetComponent<Iguana>() != null) {
+            hit.gameObject.SetActive(false);
+        }
 	}
+
+    private void STM(mState state, ref float _time) {
+        switch (state) {
+            case mState.moving:
+                Move(walker.MoveToDirection(shouldSmooth));
+                if (!shouldSmooth && walker.closeToWaypoint()) {
+                    currentState = (shouldPause ? mState.paused : mState.rotating);
+                    walker.SetRotation();
+                }
+                break;
+            case mState.paused:
+                _time += deltaTime;
+                if (_time >= pauseTime) {
+                    currentState = mState.rotating;
+                    _time = 0;
+                }
+                break;
+            case mState.rotating:
+                _time = Mathf.Min(rotationTime, _time + deltaTime);
+                walker.Rotate(_time, rotationTime);
+
+                if (_time >= rotationTime) {
+                    currentState = mState.moving;
+                    _time = 0;
+                }
+                break;
+        }
+    }
+
+    public override void ChangeCycle(DayNightCycle newCycle) {
+        if (newCycle == DayNightCycle.Afternoon)
+            WalkTo(ocio.GetClosestWaypoint(transform.position));
+        else if (newCycle == DayNightCycle.Night)
+            WalkTo(wpHome);
+        else if (newCycle == DayNightCycle.Day)
+            WalkTo(farm.GetClosestWaypoint(transform.position));
+    }
 }

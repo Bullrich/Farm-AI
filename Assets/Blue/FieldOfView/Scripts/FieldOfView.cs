@@ -13,8 +13,7 @@ namespace Blue.Fov {
 
         public LayerMask targetMask, obstacleMask;
 
-        [HideInInspector]
-        public List<Transform> visibleTargets = new List<Transform>();
+        List<Transform> visibleTargets = new List<Transform>();
 
         bool canHaveFovActive = false;
 
@@ -28,6 +27,17 @@ namespace Blue.Fov {
         public void StopFOV() {
             canHaveFovActive = false;
             StopCoroutine(FindTargetsWithDelay(.2f));
+        }
+
+        public bool hasTargetInView() {
+            return visibleTargets.Count > 0;
+        }
+
+        public Transform getTarget() {
+            if (visibleTargets.Count > 0)
+                return visibleTargets[0];
+            else
+                return null;
         }
 
         IEnumerator FindTargetsWithDelay(float delay) {
@@ -56,29 +66,31 @@ namespace Blue.Fov {
         }
 
         private void OnDrawGizmosSelected() {
-            Vector3 myPos = transform.position;
-            const float gridDetail = 20f;
+            if (canHaveFovActive) {
+                Vector3 myPos = transform.position;
+                const float gridDetail = 20f;
 
-            Gizmos.color = Color.white;
-            Gizmos.DrawWireSphere(myPos, viewRadius);
-            Gizmos.color = Color.blue;
-            Vector3 lastW = Vector3.zero;
-            foreach (Transform target in visibleTargets) {
-                Gizmos.DrawLine(transform.position, target.position);
-                Gizmos.color = Color.red;
-                Gizmos.DrawWireSphere(target.position, 1f);
-            }
-            Gizmos.color = Color.cyan;
-            for (float a = 0; a <= 360f; a += gridDetail) {
-                var v = new Vector3(
-                    0f,
-                    Mathf.Sin(Mathf.Deg2Rad * viewAngle / 2f) * viewRadius,
-                    Mathf.Cos(Mathf.Deg2Rad * viewAngle / 2f) * viewRadius
-                );
-                var w = transform.rotation * Quaternion.AngleAxis(a, Vector3.forward) * v;
-                Gizmos.DrawLine(myPos, myPos + w);
-                Gizmos.DrawLine(myPos + lastW, myPos + w);
-                lastW = w;
+                Gizmos.color = Color.white;
+                Gizmos.DrawWireSphere(myPos, viewRadius);
+                Gizmos.color = Color.blue;
+                Vector3 lastW = Vector3.zero;
+                foreach (Transform target in visibleTargets) {
+                    Gizmos.DrawLine(transform.position, target.position);
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawWireSphere(target.position, 1f);
+                }
+                Gizmos.color = Color.cyan;
+                for (float a = 0; a <= 360f; a += gridDetail) {
+                    var v = new Vector3(
+                        0f,
+                        Mathf.Sin(Mathf.Deg2Rad * viewAngle / 2f) * viewRadius,
+                        Mathf.Cos(Mathf.Deg2Rad * viewAngle / 2f) * viewRadius
+                    );
+                    var w = transform.rotation * Quaternion.AngleAxis(a, Vector3.forward) * v;
+                    Gizmos.DrawLine(myPos, myPos + w);
+                    Gizmos.DrawLine(myPos + lastW, myPos + w);
+                    lastW = w;
+                }
             }
         }
     }

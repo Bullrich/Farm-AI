@@ -3,20 +3,22 @@
 // by @Bullrich
 
 namespace Blue.Waypoints {
+    [RequireComponent(typeof(CharacterController))]
     public class StateMachine : MonoBehaviour {
         WaypointWalker walker = new WaypointWalker();
-        public Waypoint firstWaypoint;
         public float speed = 5f, pauseTime, rotationTime;
         public bool shouldPause, shouldSmooth;
         float deltaTime, _time;
+        CharacterController controller;
 
         enum States {
             moving, pause, rotating
         }
         States currentState = States.moving;
 
-        void Start() {
-            walker.Init(transform, speed, firstWaypoint);
+        public void Init(Waypoint firstWaypoint) {
+            walker.Reset(transform, speed, firstWaypoint);
+            controller = GetComponent<CharacterController>();
         }
 
         private void Update() {

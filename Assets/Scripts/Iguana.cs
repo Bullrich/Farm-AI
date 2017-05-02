@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Blue.Waypoints;
+using System;
 
 public class Iguana : MovingAgent {
 	public Waypoint wpWell;
@@ -38,4 +40,7 @@ public class Iguana : MovingAgent {
 		}
 	}
 
+    public override void ChangeCycle(DayNightCycle newCycle) {
+        //throw new NotImplementedException();
+    }
 }
