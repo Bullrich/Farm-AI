@@ -5,7 +5,7 @@ using Blue.Fov;
 using System;
 
 public class Farmer : MovingAgent {
-	public Waypoint wpHome;
+    public Waypoint wpHome;
     FieldOfView fov;
     public WaypointManager farm, ocio;
 
@@ -15,13 +15,13 @@ public class Farmer : MovingAgent {
     mState currentState = mState.moving;
 
 
-	// Use this for initialization
-	protected override void Start () {
-		base.Start();
+    // Use this for initialization
+    protected override void Start() {
+        base.Start();
         fov = GetComponent<FieldOfView>();
         fov.ContinueFOV();
-		WalkTo(wpHome);
-	}
+        WalkTo(wpHome);
+    }
 
     Vector3 FovPos(Vector3 targetPos) {
         Vector3 toWayPoint = targetPos - transform.position;
@@ -31,34 +31,34 @@ public class Farmer : MovingAgent {
     }
 
     // Update is called once per frame
-    protected override void Update () {
-		base.Update();
+    protected override void Update() {
+        base.Update();
         if (!fov.hasTargetInView())
             //Move(walker.MoveToDirection(shouldSmooth));
-            STM(currentState,ref _time);
-        else
+            STM(currentState, ref _time);
+        else if(!fov.getTarget().GetComponent<Iguana>().isInWell())
             Move(FovPos(fov.getTarget().position));
     }
 
-	protected override void WalkTo(Waypoint destination) {
-		GetComponent<Animator>().SetFloat("Walk", speed);
-		base.WalkTo(destination);
-	}
+    protected override void WalkTo(Waypoint destination) {
+        GetComponent<Animator>().SetFloat("Walk", speed);
+        base.WalkTo(destination);
+    }
 
-	protected override void WalkStop() {
-		GetComponent<Animator>().SetFloat("Walk", 0f);
-		base.WalkStop();
-	}
+    protected override void WalkStop() {
+        GetComponent<Animator>().SetFloat("Walk", 0f);
+        base.WalkStop();
+    }
 
-	void OnControllerColliderHit(ControllerColliderHit hit) {
-		var candy = hit.collider.GetComponent<Candy>();
-		if(candy != null) {
+    void OnControllerColliderHit(ControllerColliderHit hit) {
+        var candy = hit.collider.GetComponent<Candy>();
+        if (candy != null) {
             candy.Eat();
 
-		} else if (hit.collider.GetComponent<Iguana>() != null) {
+        } else if (hit.collider.GetComponent<Iguana>() != null) {
             hit.gameObject.SetActive(false);
         }
-	}
+    }
 
     private void STM(mState state, ref float _time) {
         switch (state) {
@@ -75,6 +75,7 @@ public class Farmer : MovingAgent {
                     currentState = mState.rotating;
                     _time = 0;
                 }
+                GetComponent<Animator>().SetFloat("Walk", 0f);
                 break;
             case mState.rotating:
                 _time = Mathf.Min(rotationTime, _time + deltaTime);
@@ -83,17 +84,50 @@ public class Farmer : MovingAgent {
                 if (_time >= rotationTime) {
                     currentState = mState.moving;
                     _time = 0;
+                    GetComponent<Animator>().SetFloat("Walk", speed);
                 }
                 break;
         }
     }
 
     public override void ChangeCycle(DayNightCycle newCycle) {
-        if (newCycle == DayNightCycle.Afternoon)
-            WalkTo(ocio.GetClosestWaypoint(transform.position));
-        else if (newCycle == DayNightCycle.Night)
-            WalkTo(wpHome);
-        else if (newCycle == DayNightCycle.Day)
-            WalkTo(farm.GetClosestWaypoint(transform.position));
+        if (isNocturnal)
+            NocturnalCycle(newCycle);
+        else
+            switch (newCycle) {
+                case DayNightCycle.Day:
+                    shouldSmooth = true;
+                    WalkTo(farm.GetClosestWaypoint(transform.position));
+                    fov.ContinueFOV();
+                    break;
+                case DayNightCycle.Afternoon:
+                    WalkTo(ocio.GetClosestWaypoint(transform.position));
+                    fov.ContinueFOV();
+                    shouldSmooth = false; shouldPause = true;
+                    break;
+                case DayNightCycle.Night:
+                    WalkTo(wpHome);
+                    fov.StopFOV();
+                    break;
+            }
+    }
+
+    public void NocturnalCycle(DayNightCycle newCycle) {
+        switch (newCycle) {
+            case DayNightCycle.Night:
+                shouldSmooth = true;
+                WalkTo(farm.GetClosestWaypoint(transform.position));
+                fov.ContinueFOV();
+                break;
+            case DayNightCycle.Day:
+                fov.ContinueFOV();
+                shouldSmooth = false; shouldPause = true;
+                WalkTo(ocio.GetClosestWaypoint(transform.position));
+                break;
+            case DayNightCycle.Afternoon:
+                WalkTo(wpHome);
+                fov.StopFOV();
+                break;
+        }
     }
 }

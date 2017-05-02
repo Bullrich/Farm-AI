@@ -8,37 +8,37 @@ using Blue.Waypoints;
 public class WaypointManager : MonoBehaviour {
     public List<Waypoint> waypoints = new List<Waypoint>();
 
-    void Start() {
+    void Awake() {
         foreach (Transform t in transform)
             waypoints.Add(t.GetComponent<Waypoint>());
-        SetByOrder();
+        SetByOrder(waypoints);
     }
 
-    void SetByOrder() {
-        for (int i = 0; i < waypoints.Count; i++) {
-            int next = (i + 1 < waypoints.Count ? i + 1 : 0);
-            waypoints[i].next = waypoints[next];
+    void SetByOrder(List<Waypoint> listWP) {
+        for (int i = 0; i < listWP.Count; i++) {
+            int next = (i + 1 < listWP.Count ? i + 1 : 0);
+            listWP[i].next = listWP[next];
         }
     }
 
     [System.Obsolete("Not being used because it separates the groups. Use SetByOrder instead")]
-    public void SetWaypoints() {
-        for (int i = 0; i < waypoints.Count; i++) {
+    public void SetWaypoints(List<Waypoint> listWP) {
+        for (int i = 0; i < listWP.Count; i++) {
             float startDistance = 99f;
             int selectedWaypoint = 0;
-            for (int j = 0; j < waypoints.Count; j++) {
-                float distanceBetweenWaypoints = (waypoints[i].transform.position - waypoints[j].transform.position).sqrMagnitude;
+            for (int j = 0; j < listWP.Count; j++) {
+                float distanceBetweenWaypoints = (listWP[i].transform.position - listWP[j].transform.position).sqrMagnitude;
                 if (distanceBetweenWaypoints < startDistance)
-                    if (waypoints[j].Next != waypoints[i] &&
-                        waypoints[j] != waypoints[i] &&
+                    if (listWP[j].Next != listWP[i] &&
+                        listWP[j] != listWP[i] &&
                         //waypoints[j].Next == null &&
-                        !waypoints[j].hasWaypoint) {
+                        !listWP[j].hasWaypoint) {
                         startDistance = distanceBetweenWaypoints;
                         selectedWaypoint = j;
                     }
             }
-            waypoints[i].next = waypoints[selectedWaypoint];
-            waypoints[selectedWaypoint].hasWaypoint = true;
+            listWP[i].next = listWP[selectedWaypoint];
+            listWP[selectedWaypoint].hasWaypoint = true;
         }
     }
 

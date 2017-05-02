@@ -11,7 +11,7 @@ public abstract class MovingAgent : MonoBehaviour {
 	protected CharacterController _ctrl;
     protected WaypointWalker walker = new WaypointWalker();
     public float pauseTime, rotationTime;
-    public bool shouldPause, shouldSmooth;
+    public bool shouldPause, shouldSmooth, isNocturnal;
     protected float deltaTime, _time;
     protected DayNightCycle cycle;
 
