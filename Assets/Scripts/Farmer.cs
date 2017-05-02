@@ -20,7 +20,7 @@ public class Farmer : MovingAgent {
         base.Start();
         fov = GetComponent<FieldOfView>();
         fov.ContinueFOV();
-        WalkTo(wpHome);
+        //WalkTo(wpHome);
     }
 
     protected override void Awake() {
