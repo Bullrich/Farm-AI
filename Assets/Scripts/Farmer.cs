@@ -23,6 +23,11 @@ public class Farmer : MovingAgent {
         WalkTo(wpHome);
     }
 
+    protected override void Awake() {
+        base.Awake();
+        fov = GetComponent<FieldOfView>();
+    }
+
     Vector3 FovPos(Vector3 targetPos) {
         Vector3 toWayPoint = targetPos - transform.position;
         Vector3 direction = toWayPoint.normalized;
@@ -33,10 +38,10 @@ public class Farmer : MovingAgent {
     // Update is called once per frame
     protected override void Update() {
         base.Update();
-        if (!fov.hasTargetInView())
+        if (!IguanaInView())
             //Move(walker.MoveToDirection(shouldSmooth));
             STM(currentState, ref _time);
-        else if(!fov.getTarget().GetComponent<Iguana>().isInWell())
+        else 
             Move(FovPos(fov.getTarget().position));
     }
 
@@ -50,13 +55,21 @@ public class Farmer : MovingAgent {
         base.WalkStop();
     }
 
+    private bool IguanaInView() {
+        if (fov.hasTargetInView()) {
+            Iguana iguana = fov.getTarget().GetComponent<Iguana>();
+            return !iguana.isInWell();
+        }
+        return false;
+    }
+
     void OnControllerColliderHit(ControllerColliderHit hit) {
         var candy = hit.collider.GetComponent<Candy>();
         if (candy != null) {
             candy.Eat();
 
         } else if (hit.collider.GetComponent<Iguana>() != null) {
-            hit.gameObject.SetActive(false);
+            hit.collider.GetComponent<Iguana>().Die();
         }
     }
 
@@ -114,17 +127,17 @@ public class Farmer : MovingAgent {
 
     public void NocturnalCycle(DayNightCycle newCycle) {
         switch (newCycle) {
-            case DayNightCycle.Night:
+            case DayNightCycle.Afternoon:
                 shouldSmooth = true;
                 WalkTo(farm.GetClosestWaypoint(transform.position));
                 fov.ContinueFOV();
                 break;
-            case DayNightCycle.Day:
+            case DayNightCycle.Night:
                 fov.ContinueFOV();
                 shouldSmooth = false; shouldPause = true;
                 WalkTo(ocio.GetClosestWaypoint(transform.position));
                 break;
-            case DayNightCycle.Afternoon:
+            case DayNightCycle.Day:
                 WalkTo(wpHome);
                 fov.StopFOV();
                 break;
