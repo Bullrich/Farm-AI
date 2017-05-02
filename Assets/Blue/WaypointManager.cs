@@ -6,7 +6,7 @@ using Blue.Waypoints;
 // by @Bullrich
 
 public class WaypointManager : MonoBehaviour {
-    public List<Waypoint> waypoints = new List<Waypoint>();
+    List<Waypoint> waypoints = new List<Waypoint>();
 
     void Awake() {
         foreach (Transform t in transform)

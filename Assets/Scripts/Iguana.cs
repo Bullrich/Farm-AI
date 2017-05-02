@@ -102,6 +102,7 @@ public class Iguana : MovingAgent {
                         currentState = iguanaState.gathering;
                     } else
                         currentState = iguanaState.sleeping;
+                    _time = 0;
                 }
                 break;
             default:
@@ -110,6 +111,7 @@ public class Iguana : MovingAgent {
     }
 
     public void Die() {
+        Debug.Log(gameObject.name + " died!");
         gameObject.SetActive(false);
     }
 

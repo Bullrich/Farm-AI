@@ -15,6 +15,10 @@ public abstract class MovingAgent : MonoBehaviour {
     protected float deltaTime, _time;
     protected DayNightCycle cycle;
 
+    protected virtual void Awake() {
+        Environment._changeCycle += ChangeCycle;
+    }
+
     protected virtual void Start() {
 		_ctrl = GetComponent<CharacterController>();
 	}
@@ -29,8 +33,10 @@ public abstract class MovingAgent : MonoBehaviour {
 	}
 
     protected void Move(Vector3 targetPos) {
-        transform.forward = targetPos;
-        _ctrl.Move(targetPos * speed * deltaTime);
+        if (_wpDst != null) {
+            transform.forward = targetPos;
+            _ctrl.Move(targetPos * speed * deltaTime);
+        }
     }
 
     public abstract void ChangeCycle(DayNightCycle newCycle);

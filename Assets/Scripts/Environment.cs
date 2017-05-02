@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 public enum DayNightCycle {
 	Day,
@@ -15,9 +16,11 @@ public class Environment : MonoBehaviour {
 	public DayNightCycle startingCycle;
 	public GameObject lightDay, lightAfternoon, lightNight;
 	public Transform farm;
-    public MovingAgent[] agents;
 
 	public float cycleSeconds = 30f;
+
+    public delegate void changeCycle(DayNightCycle newCycle);
+    public static event changeCycle _changeCycle;
 
 	List<Candy> _allCandy;
 
@@ -32,8 +35,7 @@ public class Environment : MonoBehaviour {
 				_allCandy.Add(candy);
 		}
 
-        foreach (MovingAgent agent in agents)
-            agent.ChangeCycle(_currentCycle);
+        _changeCycle(currentCycle);
     }
 
 	public DayNightCycle currentCycle {
@@ -44,8 +46,7 @@ public class Environment : MonoBehaviour {
 				lightDay.SetActive(_currentCycle == DayNightCycle.Day);
 				lightAfternoon.SetActive(_currentCycle == DayNightCycle.Afternoon);
 				lightNight.SetActive(_currentCycle == DayNightCycle.Night);
-                foreach (MovingAgent agent in agents)
-                    agent.ChangeCycle(_currentCycle);
+                _changeCycle(_currentCycle);
 			}
 		}
 	}
